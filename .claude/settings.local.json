@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__scheduled-tasks__list_scheduled_tasks",
+      "mcp__tradingview__tv_health_check",
+      "mcp__tradingview__quote_get",
+      "Bash(python src/signal_engine.py --check-only)",
+      "Bash(python src/backfill_yfinance.py)",
+      "Bash(python src/retrain.py)"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+direction
+strategy
+zone_size
+zone_body_ratio
+breakout_mag
+retest_type
+bars_to_retest
+sl_distance
+dist_to_session_level
+atr
+hour_cst
+minute_cst

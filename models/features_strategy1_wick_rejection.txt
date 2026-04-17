@@ -1,0 +1,12 @@
+direction
+strategy
+p_direction
+p_body_size
+p_range
+p_upper_wick_r
+p_lower_wick_r
+wick_penetration
+close_pct_body
+rr_ratio
+session
+hour_cst

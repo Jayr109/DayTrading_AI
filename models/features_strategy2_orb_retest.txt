@@ -1,0 +1,11 @@
+direction
+strategy
+or_size
+or_body_ratio
+breakout_mag
+retest_depth
+bars_to_retest
+sl_distance
+atr
+hour_cst
+minute_cst
