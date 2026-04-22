@@ -222,13 +222,16 @@ def score_bar(df_bars: pd.DataFrame, model, feature_cols: list) -> dict:
 # TP/SL check for pending trades
 # ---------------------------------------------------------------------------
 
-def check_pending_trades(df_bars: pd.DataFrame) -> None:
+def check_pending_trades(df_bars: pd.DataFrame, symbol: str) -> None:
     """
-    For each pending trade in the log, check if the current bar's high/low
-    crossed TP or SL, and close it if so.
+    For each pending trade in the log matching `symbol`, check if the current
+    bar's high/low crossed TP or SL, and close it if so.
     TP takes priority if both triggered in the same bar.
     """
     pending = get_pending_trades()
+
+    if not pending.empty:
+        pending = pending[pending["symbol"] == symbol]
 
     if pending.empty:
         print("[check] No pending trades to check.")
@@ -385,7 +388,7 @@ def run(symbol: str, threshold: float, check_only: bool) -> None:
     print()
 
     # --- Check pending trades first ---
-    check_pending_trades(df_bars)
+    check_pending_trades(df_bars, symbol)
     print()
 
     if check_only:
@@ -416,7 +419,23 @@ def run(symbol: str, threshold: float, check_only: bool) -> None:
     print()
 
     if prob >= threshold:
-        emit_signal(symbol, result)
+        # EV gate: reject if model confidence can't overcome the R:R
+        tp_dist = abs(result["tp_price"] - result["entry_price"])
+        sl_dist = abs(result["sl_price"] - result["entry_price"])
+        required_win_rate = sl_dist / (sl_dist + tp_dist)
+        ev_pts = prob * tp_dist - (1 - prob) * sl_dist
+
+        print(f"[ev_gate] R:R={result['rr_ratio']:.3f} | "
+              f"Required win rate: {required_win_rate:.1%} | "
+              f"Model prob: {prob:.1%} | "
+              f"Expected value: {ev_pts:+.2f} pts")
+
+        if ev_pts <= 0:
+            print(f"[{STRATEGY_NAME}] BLOCKED by EV gate — negative expectancy "
+                  f"({ev_pts:+.2f} pts). No signal this bar.")
+            print()
+        else:
+            emit_signal(symbol, result)
     else:
         print(f"[{STRATEGY_NAME}] No signal this bar. Best prob: {prob:.3f}")
         print()
